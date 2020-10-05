@@ -12,32 +12,40 @@
 
         init (comp) {
             _init.call(this, comp);
-            this.updateMeshData(true);
+
+            this._renderDataList = new renderer.RenderDataList();
+            this.setRenderDataList(this._renderDataList);
+
+            this.setUseModel(true);
+            this.updateMeshData();
+        },
+
+        updateRenderData (comp) {   
         },
 
         setRenderNode (node) {
             this.setNode(node._proxy);
         },
 
-        updateRenderData (comp) {
-            this.updateMeshData();
-            comp.node._renderFlag |= cc.RenderFlow.FLAG_UPDATE_RENDER_DATA;
-        },
-
-        updateMeshData (force) {
+        updateMeshData () {
             let comp = this._renderComp;
             let mesh = comp.mesh;
-            if (!mesh || !mesh.loaded) return;
+            if (!mesh) return;
+
+            if (!mesh.loaded) {
+                mesh.once('load', this.updateMeshData, this);
+                return;
+            }
 
             let subdatas = comp.mesh.subDatas;
             for(let i = 0, len = subdatas.length; i < len; i++) {
                 let data = subdatas[i];
-                if (force || data.vDirty || data.iDirty) {
-                    this.updateIAData(i, data.vfm._nativeObj, data.vData, data.iData);
-                    data.vDirty = false;
-                    data.iDirty = false;
+                if (data.vDirty || data.iDirty) {
+                    this._renderDataList.updateMesh(i, data.vData, data.iData);
                 }
             }
+            this.setCustomProperties(comp._customProperties._nativeObj);
+            this.setVertexFormat(subdatas[0].vfm._nativeObj);
         }
     }, renderer.MeshAssembler.prototype);
 })();

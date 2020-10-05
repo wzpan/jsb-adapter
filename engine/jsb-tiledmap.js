@@ -164,6 +164,12 @@
 
         updateRenderData (comp) {
             if (!comp._modelBatcherDelegate) {
+                let materials = this._renderComp.sharedMaterials;
+                for (let i = 0; i < materials.length; i++) {
+                    let m = materials[i];
+                    if (m) m.getHash();
+                }
+
                 comp._buffer = new cc.TiledMapBuffer(null, cc.gfx.VertexFormat.XY_UV_Color);
                 comp._renderDataList = new cc.TiledMapRenderDataList();
                 comp._modelBatcherDelegate = new ModelBatcherDelegate();
